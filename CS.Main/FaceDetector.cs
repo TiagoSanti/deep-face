@@ -7,8 +7,8 @@ namespace DeepFace
     public class FaceDetector
     {
         public UltraFace? ultraFace;
-        public string binPath = Helpers.GetProjectPath()+@"\ncnn\data\version-RFB\RFB-320.bin";
-        public string paramPath = Helpers.GetProjectPath()+@".\ncnn\data\version-RFB\RFB-320.param";
+        public string binPath = Helpers.GetProjectPath()+@"\CS.Main\ncnn\data\version-RFB\RFB-320.bin";
+        public string paramPath = Helpers.GetProjectPath()+@"\CS.Main\ncnn\data\version-RFB\RFB-320.param";
         public UltraFaceParameter? parameter;
 
         public FaceDetector()
