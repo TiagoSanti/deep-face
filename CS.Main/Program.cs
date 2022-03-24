@@ -11,17 +11,11 @@ namespace DeepFace
             Helpers.CreateTempDir();
             Helpers.ClearTemp();
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            DatabaseEncodings(detector);
-            watch.Stop();
-            Console.WriteLine("Time to run DatabaseEncodings(): " + watch.Elapsed.TotalSeconds.ToString());
-
-            RunRealTimeRecognizer();
+            RunRealTimeRecognizer(detector);
         }
 
-        public static void RunRealTimeRecognizer()
+        public static void RunRealTimeRecognizer(FaceDetector detector)
         {
-            FaceDetector detector = new();
             FaceRecognizer faceRecognizer = new();
             Camera capture = new();
             capture.StartCamera();
@@ -65,12 +59,6 @@ namespace DeepFace
             watch.Stop();
             Helpers.ClearTemp();
             Camera.Close();
-        }
-
-        public static void DatabaseEncodings(FaceDetector detector)
-        {
-            detector.EnchanceDatabaseImages();
-            Encoder.EncodeDatabase();
         }
     }
 }
