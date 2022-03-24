@@ -90,7 +90,7 @@ namespace DeepFace
         internal static void OverwriteImage(Bitmap bitmap, string personImagePath)
         {
             File.Delete(personImagePath);
-            bitmap.Save(personImagePath+"_cropped.png", System.Drawing.Imaging.ImageFormat.Png);
+            bitmap.Save(personImagePath+"_cropped.jpg", System.Drawing.Imaging.ImageFormat.Png);
         }
 
         public static void SaveTempImage(List<Mat> mats)
