@@ -5,13 +5,12 @@ import numpy as np
 import pandas as pd
 import time
 
-
-def delete_temp_image(image_path):
-    os.remove(image_path)
-
-
-database_path = sys.argv[1]
-temp_path = sys.argv[2]
+try:
+    database_path = sys.argv[1]
+    temp_path = sys.argv[2]
+except:
+    database_path = r'C:\Dev\Github\TiagoSanti\deep-face\Database'
+    temp_path = r'C:\Dev\Github\TiagoSanti\deep-face\Temp'
 
 while True:
     start = time.time()
@@ -25,7 +24,7 @@ while True:
             temp_file_path = temp_path + '\\' + temp_file
             result = DeepFace.find(temp_file_path,
                                    db_path=database_path,
-                                   model_name='VGG-Face',
+                                   model_name='ArcFace',
                                    distance_metric='cosine',
                                    detector_backend='mtcnn',
                                    enforce_detection=False)
@@ -39,13 +38,13 @@ while True:
             # getting people names
             for path in paths:
                 path1 = path.split('/')[-2]
-                id = path1.split('\\')[-1]
+                id_name = path1.split('\\')[-1]
                 sys.stdout.flush()
 
-                identity.append(id)
+                identity.append(id_name)
 
-                if id not in unique_id:
-                    unique_id.append(id)
+                if id_name not in unique_id:
+                    unique_id.append(id_name)
 
             result['identity'] = identity
 
@@ -60,9 +59,9 @@ while True:
             score_mean = []
 
             # mean distances and scores
-            for id in unique_id:
-                id_distances = result[result['identity'] == id]['VGG-Face_cosine'].values
-                id_scores = result[result['identity'] == id]['score'].values
+            for id_name in unique_id:
+                id_distances = result[result['identity'] == id_name]['ArcFace_cosine'].values
+                id_scores = result[result['identity'] == id_name]['score'].values
 
                 id_distances_lenght = len(id_distances)
                 id_scores_lenght = len(id_scores)
@@ -86,21 +85,21 @@ while True:
             ids_in_neighborhood = neighborhood_slice['identity'].unique()
 
             id_count = []
-            for id in ids_in_neighborhood:
-                id_count.append(neighborhood_slice[neighborhood_slice['identity'] == id].shape[0])
+            for id_name in ids_in_neighborhood:
+                id_count.append(neighborhood_slice[neighborhood_slice['identity'] == id_name].shape[0])
 
             df['knn'] = [0] * df.shape[0]
             knn_column = df.columns.get_loc('knn')
 
-            for id, value in zip(ids_in_neighborhood, id_count):
-                id_index = df.index[df['id'] == id].tolist()[0]
+            for id_name, value in zip(ids_in_neighborhood, id_count):
+                id_index = df.index[df['id'] == id_name].tolist()[0]
                 df.iat[id_index, knn_column] = value
 
             print(df)
             sys.stdout.flush()
             # Printing results
-            '''
-            print('Result by distance mean:')
+
+            print('\nResult by distance mean:')
             print(df.sort_values(by=['distance_mean'])[:1])
 
             print('\nResult by score mean:')
@@ -109,9 +108,9 @@ while True:
             print('\nResult by k_neighbors:')
             print(df.sort_values(by=['knn'], ascending=False)[:1])
 
-            print(f'\n{(time.time()-start):.2f} seconds to verify\n')
+            print(f'\n{(time.time() - start):.2f} seconds to verify\n')
             sys.stdout.flush()
-            '''
-            delete_temp_image(temp_file_path)
 
-    time.sleep(3)
+            os.remove(temp_file_path)
+
+    time.sleep(10)
