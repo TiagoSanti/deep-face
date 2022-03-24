@@ -15,9 +15,9 @@
         private static string[] CreatePythonScript()
         {
             string projectPath = Helpers.GetProjectPath();
-            string scriptPath = projectPath + "\\scripts\\face_encoding_and_comparison.py";
-            string databasePath = projectPath + "\\database";
-            string tempPath = projectPath + "\\temp";
+            string scriptPath = projectPath + "\\PyScripts\\verification.py";
+            string databasePath = projectPath + "\\Database";
+            string tempPath = projectPath + "\\Temp";
             string[] args = { scriptPath, databasePath, tempPath };
 
             return args;
