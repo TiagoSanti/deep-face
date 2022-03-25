@@ -20,7 +20,7 @@ namespace DeepFace
                 InputWidth = 320,
                 InputLength = 240,
                 NumThread = 1,
-                ScoreThreshold = 0.7f
+                ScoreThreshold = 0.95f
             };
 
             ultraFace = UltraFace.Create(parameter);
@@ -44,7 +44,7 @@ namespace DeepFace
         public void EnchanceDatabaseImages()
         {
             string projectDir = Helpers.GetProjectPath();
-            string imageDatabaseDir = projectDir+@"\database\images\";
+            string imageDatabaseDir = projectDir+@"\Database\Images\";
 
             string[] peopleImageDBDir = Directory.GetDirectories(imageDatabaseDir);
             foreach (string personImageDBDir in peopleImageDBDir)
