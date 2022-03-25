@@ -749,5 +749,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 /Database/Images
-/Database/representations_vgg_face.pkl
 *.pkl
+*.png
+*.jpg
