@@ -752,3 +752,4 @@ cython_debug/
 *.pkl
 *.png
 *.jpg
+*.zip

@@ -1,22 +1,19 @@
 import sys
 import os
-from os import path
 from datetime import datetime
-from deepface import DeepFace
-from deepface.commons import functions
 import numpy as np
 import pandas as pd
 import cv2
 import time
-from DeepFaceAPI import *
+import DeepFaceCustom
 
 
 def save_result(image_path, result_distance, result_score, result_knn):
     # (width, height)
 
-    result_distance_pred = result_distance[0][0]
-    result_score_pred = result_score[0][0]
-    result_knn_pred = result_knn[0][0]
+    result_distance_pred = result_distance[0]
+    result_score_pred = result_score[0]
+    result_knn_pred = result_knn[0]
 
     img = cv2.imread(image_path)
     cv2.resize(img, (100, 120))
@@ -28,133 +25,133 @@ def save_result(image_path, result_distance, result_score, result_knn):
         pass
 
     datet = datetime.now().strftime('%S_%f')
-    results = f'd.{result_distance_pred}-s.{result_score_pred}-k.{result_knn_pred}_'
+
+    if result_distance == result_score == result_knn:
+        results = f'{result_distance_pred}_'
+    else:
+        results = f'd.{result_distance_pred} s.{result_score_pred} k.{result_knn_pred}_'
+
     file_name = result_dir + results + datet + '.jpg'
     cv2.imwrite(file_name, img)
+
     return file_name
 
 
-try:
-    database_path = sys.argv[1]
-    temp_path = sys.argv[2]
-except IndexError:
-    database_path = r'C:\Dev\Github\TiagoSanti\deep-face\Database'
-    temp_path = r'C:\Dev\Github\TiagoSanti\deep-face\Temp'
+database_path = sys.argv[1]
+temp_path = sys.argv[2]
 
-model_name = 'ArcFace'
+#models = ["VGG-Face", "Facenet", "Facenet512", "DeepFace", "ArcFace"]
+models = ['VGG-Face']
 metric = 'cosine'
 
 while True:
-    start = time.time()
-
+    sys.stdout.flush()
     temp_files = os.listdir(temp_path)
-
+    representations = DeepFaceCustom.load_representations(model=models, db_path=database_path)
     if len(temp_files) > 0:
         for temp_file in temp_files:
-            temp_file_path = temp_path + '\\' + temp_file
+            for model in models:
+                temp_file_path = temp_path + '\\' + temp_file
 
-            temp_img = cv2.imread(temp_file_path)
-
-            result = DeepFace.find(temp_img,
-                                   db_path=database_path,
-                                   model_name=model_name,
-                                   distance_metric=metric,
-                                   detector_backend='mtcnn',
-                                   enforce_detection=False)
-
-            # files paths
-            paths = result['identity'].values.tolist()
-            identity = []
-            unique_id = []
-
-            # getting people names
-            for path in paths:
-                path1 = path.split('/')[-2]
-                id_name = path1.split('\\')[-1]
+                temp_img = cv2.imread(temp_file_path)
+                start = time.time()
+                result = DeepFaceCustom.compare(img_path=temp_img,
+                                             db_path=database_path,
+                                             model_name=model,
+                                             distance_metric=metric,
+                                             detector_backend='mtcnn')
+                print(f'\n{(time.time() - start):.2f} seconds to compare -------------------------------------\n')
                 sys.stdout.flush()
 
-                identity.append(id_name)
+                # files paths
+                paths = result['identity'].values.tolist()
+                identity = []
+                unique_id = []
 
-                if id_name not in unique_id:
-                    unique_id.append(id_name)
+                # getting people names
+                for path in paths:
+                    id_name = path.split('\\')[0]
 
-            result['identity'] = identity
+                    identity.append(id_name)
 
-            # scores
-            score = []
-            for i in result.values:
-                score.append(1 / np.square(i[1]))
+                    if id_name not in unique_id:
+                        unique_id.append(id_name)
 
-            result['score'] = score
+                result['identity'] = identity
 
-            print(result)
-            print()
-            sys.stdout.flush()
+                # scores
+                score = []
+                for i in result.values:
+                    score.append(1 / np.square(i[1]))
 
-            distance_mean = []
-            score_mean = []
+                result['score'] = score
 
-            # mean distances and scores
-            for id_name in unique_id:
-                id_distances = result[result['identity'] == id_name][f'{model_name}_{metric}'].values
-                id_scores = result[result['identity'] == id_name]['score'].values
+                print(result)
+                print()
 
-                id_distances_lenght = len(id_distances)
-                id_scores_lenght = len(id_scores)
+                distance_mean = []
+                score_mean = []
 
-                id_distances_mean = sum(id_distances) / id_distances_lenght
-                id_scores_mean = sum(id_scores) / id_scores_lenght
+                # mean distances and scores
+                for id_name in unique_id:
+                    id_distances = result[result['identity'] == id_name][f'{model}_{metric}'].values
+                    id_scores = result[result['identity'] == id_name]['score'].values
 
-                distance_mean.append(id_distances_mean)
-                score_mean.append(id_scores_mean)
+                    id_distances_lenght = len(id_distances)
+                    id_scores_lenght = len(id_scores)
 
-            # final dataframe
-            df = pd.DataFrame({
-                'id': unique_id,
-                'distance_mean': distance_mean,
-                'score_mean': score_mean
-            })
+                    id_distances_mean = sum(id_distances) / id_distances_lenght
+                    id_scores_mean = sum(id_scores) / id_scores_lenght
 
-            # knn visualization
-            k_neighbors = 4
-            neighborhood_slice = result[:k_neighbors]
-            ids_in_neighborhood = neighborhood_slice['identity'].unique()
+                    distance_mean.append(id_distances_mean)
+                    score_mean.append(id_scores_mean)
 
-            id_count = []
-            for id_name in ids_in_neighborhood:
-                id_count.append(neighborhood_slice[neighborhood_slice['identity'] == id_name].shape[0])
+                # final dataframe
+                df = pd.DataFrame({
+                    'id': unique_id,
+                    'distance_mean': distance_mean,
+                    'score_mean': score_mean
+                })
 
-            df['knn'] = [0] * df.shape[0]
-            knn_column = df.columns.get_loc('knn')
+                # knn
+                k_neighbors = 4
+                neighborhood_slice = result[:k_neighbors]
+                ids_in_neighborhood = neighborhood_slice['identity'].unique()
 
-            for id_name, value in zip(ids_in_neighborhood, id_count):
-                id_index = df.index[df['id'] == id_name].tolist()[0]
-                df.iat[id_index, knn_column] = value
+                id_count = []
+                for id_name in ids_in_neighborhood:
+                    id_count.append(neighborhood_slice[neighborhood_slice['identity'] == id_name].shape[0])
 
-            print(df)
-            sys.stdout.flush()
+                df['knn'] = [0] * df.shape[0]
+                knn_column = df.columns.get_loc('knn')
 
-            result_distance = df.sort_values(by=['distance_mean'])[:1]
-            result_score = df.sort_values(by=['score_mean'], ascending=False)[:1]
-            result_knn = df.sort_values(by=['knn'], ascending=False)[:1]
+                for id_name, value in zip(ids_in_neighborhood, id_count):
+                    id_index = df.index[df['id'] == id_name].tolist()[0]
+                    df.iat[id_index, knn_column] = value
 
-            result_file_name = save_result(temp_file_path,
-                                           result_distance.values.tolist(),
-                                           result_score.values.tolist(),
-                                           result_knn.values.tolist())
+                print(df)
+                sys.stdout.flush()
 
-            print('\nRESULT FILE:', result_file_name.split('\\')[-1])
-            print('Result by distance mean:')
-            print(result_distance)
+                result_distance = df.sort_values(by=['distance_mean'])[:1]
+                result_score = df.sort_values(by=['score_mean'], ascending=False)[:1]
+                result_knn = df.sort_values(by=['knn'], ascending=False)[:1]
 
-            print('\nResult by score mean:')
-            print(result_score)
+                result_file_name = save_result(temp_file_path,
+                                               result_distance['id'].values,
+                                               result_score['id'].values,
+                                               result_knn['id'].values)
 
-            print('\nResult by k_neighbors:')
-            print(result_knn)
+                print('\nPREDIC FILE:', temp_file)
+                print('RESULT FILE:', result_file_name.split('\\')[-1])
+                print('Result by distance mean: ', end='')
+                print(result_distance['id'].values[0])
 
-            print(f'\n{(time.time() - start):.2f} seconds to verify\n')
-            sys.stdout.flush()
+                print('Result by score mean: ', end='')
+                print(result_score['id'].values[0])
+
+                print('Result by k_neighbors: ', end='')
+                print(result_knn['id'].values[0])
+                sys.stdout.flush()
 
             os.remove(temp_file_path)
 
