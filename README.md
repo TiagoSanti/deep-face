@@ -15,7 +15,22 @@ Time to enchance database: 0.0562972 seconds.
 7. Run Python script.
 8. Python script retrieve face image from Temp directory.
 9. Representation: Load existing representations if exists or encode each enchanced image using DeepFace specified model (VGG-Face by default) and save it.
+```
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Person 1/IMG_1783.JPEG_cropped.png..
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Person 1/IMG_1784.JPEG_cropped.png..
 
+...
+
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Person 8/IMG_1878.JPEG_cropped.png..
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Person 8/IMG_1879.JPEG_cropped.png..
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Tiago Clarintino Santi/IMG_1833.JPEG_cropped.png..
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Tiago Clarintino Santi/IMG_1834.JPEG_cropped.png..
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Tiago Clarintino Santi/IMG_1835.JPEG_cropped.png..
+Representing C:\Dev\Github\TiagoSanti\deep-face\Database\Images\Tiago Clarintino Santi/IMG_1836.JPEG_cropped.png..
+
+Representations stored in  C:\Dev\Github\TiagoSanti\deep-face\Database\representations_vgg_face.pkl  file.
+Please delete this file when you add new identities in your database.
+```
 11. Comparison: calculate distances between retrieved face and all database images.
 13. Score: calculate scores based on distances.
 ```
