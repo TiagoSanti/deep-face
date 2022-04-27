@@ -11,7 +11,9 @@ namespace DeepFace
             Helpers.CreateTempDir();
             Helpers.ClearTemp();
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             detector.EnchanceDatabaseImages();
+            Console.WriteLine("Time to enchance database: " + watch.Elapsed.TotalSeconds.ToString() + " seconds.");
 
             RunRealTimeRecognizer(detector);
         }
@@ -34,6 +36,7 @@ namespace DeepFace
 
                         if (faceRecognizer.GetPyTaskStatus() == TaskStatus.Created)
                         {
+                            Console.WriteLine("Initiating PyScript");
                             faceRecognizer.RunPyTask();
                         }
                         else if (faceRecognizer.GetPyTaskStatus() == TaskStatus.Running)
@@ -41,6 +44,7 @@ namespace DeepFace
                             if (!Helpers.ThereIsTempFiles())
                             {
                                 List<Mat> croppedMats = Helpers.BitmapsToMats(Helpers.CropImageFromMat(mat, faceInfos));
+                                croppedMats = Helpers.ResizeImagesFromMats(croppedMats);
                                 Helpers.SaveTempImage(croppedMats);
                             }
                         }
@@ -49,6 +53,7 @@ namespace DeepFace
                     capture.ShowImage(mat);
                 }
             }
+
             Helpers.ClearTemp();
             Camera.Close();
         }

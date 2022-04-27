@@ -54,11 +54,12 @@ namespace DeepFace
                 {
                     if (!personImagePath.Contains("_cropped"))
                     {
-                        FaceInfo[] faceInfos = DetectFacesImagePath(personImagePath);
+                        Mat mat_resized = Helpers.ResizeImageFromPath(personImagePath);
+                        FaceInfo[] faceInfos = DetectFacesMat(mat_resized);
                         if (faceInfos != null)
                         {
                             FaceInfo faceInfo = faceInfos[0];
-                            using Bitmap bitmap = Helpers.CropImageFromPath(personImagePath, faceInfo);
+                            using Bitmap bitmap = Helpers.CropImageFromPath(mat_resized, faceInfo);
                             Helpers.OverwriteImage(bitmap, personImagePath);
                         }
                     }
